@@ -1,0 +1,28 @@
+name: DevOps Automation Pipeline
+
+# Trigger this pipeline on every git push to the main branch
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  # Job 1: Run automated checks on the Python code
+  code-test:
+    runs-on: ubuntu-latest # Spits up a fresh Ubuntu container runner on GitHub's cloud
+    
+    steps:
+    # Step A: Clone the repository code onto the runner
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    # Step B: Setup Python runtime
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-node-version: '3.11'
+
+    # Step C: Install dependencies and run a syntax check
+    - name: Lint and Test Code
+      run: |
+        pip install -r requirements.txt
+        python -m py_compile app.py # Ensures our python file has zero syntax bugs
