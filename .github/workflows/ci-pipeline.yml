@@ -44,5 +44,5 @@ jobs:
         push: true
         # Replace 'mizanolinko' with your actual Docker Hub username below
         tags: |
-          ${{ secrets.mizanolinko }}/prod-app:latest
-          ${{ secrets.mizanolinko }}/prod-app:${{ github.sha }}
+          ${{ secrets.mizanolinko }}Mizan-Olinko/prod-app:latest
+          ${{ secrets.mizanolinko }}Mizan-Olinko/prod-app:${{ github.sha }}
