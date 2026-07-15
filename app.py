@@ -132,7 +132,7 @@ class PortfolioHandler(SimpleHTTPRequestHandler):
         </body>
         </html>
         """
-        self.wfile.write(bytes(portfolio_html, "utf-8"))
+        self.wfile.write(b"<h1>Mizan-Olinko's CI/CD Pipeline is Fully Alive!</h1>")
 
 print(f"Serving portfolio microservice securely on port {PORT}...")
 with TCPServer(("", PORT), PortfolioHandler) as httpd:

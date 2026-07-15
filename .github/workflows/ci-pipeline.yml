@@ -22,11 +22,10 @@ jobs:
         pip install -r requirements.txt
         python -m py_compile app.py
 
-# Job 2: Build & Publish to Docker Hub (CD)
+  # Job 2: Build & Publish to Docker Hub (CD)
   build-and-push:
     runs-on: ubuntu-latest
-    needs: code-test # Only run if tests pass!
-    
+    needs: code-test
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
@@ -34,7 +33,7 @@ jobs:
     - name: Log in to Docker Hub
       uses: docker/login-action@v3
       with:
-        registry: docker.io # <-- Explicitly tell it to use public Docker Hub
+        registry: docker.io
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_ACCESS_TOKEN }}
 
@@ -43,7 +42,30 @@ jobs:
       with:
         context: .
         push: true
-        # Using docker.io/ prefix ensures the builder knows exactly where to push
         tags: |
           docker.io/mizanolinko/prod-app:latest
           docker.io/mizanolinko/prod-app:${{ github.sha }}
+
+  # Job 3: Pull & Run the new container on AWS
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build-and-push # Only run if the build and push succeeds!
+
+    steps:
+    - name: SSH into EC2 and Deploy
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ubuntu
+        key: ${{ secrets.EC2_SSH_KEY }}
+        port: 22
+        script: |
+          # Stop the old running container (ignore error if it doesn't exist yet)
+          sudo docker stop prod-cloud-app || true
+          sudo docker rm prod-cloud-app || true
+          
+          # Pull the latest image we just compiled
+          sudo docker pull mizanolinko/prod-app:latest
+          
+          # Run the fresh container version on host port 8080
+          sudo docker run -d -p 8080:8080 --name prod-cloud-app mizanolinko/prod-app:latest
