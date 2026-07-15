@@ -15,7 +15,7 @@ for i in range(10):
     except Exception:
         time.sleep(1)
 
-class PortfolioHandler(SimpleHTTPRequestHandler):
+class PortfolioHandler(SimpleHTTPRequestHandler)
     def do_GET(self):
         # Increment the hit counter in Redis database
         hits = 0
