@@ -1,0 +1,16 @@
+services:
+  # Tier 1: The Python Web Frontend Microservice
+  my-web-frontend:
+    build: .
+    ports:
+      - "8080:9090"
+    volumes:
+      - .:/usr/src/app
+    depends_on:
+      - my-db-backend
+
+  # Tier 2: The Redis Memory Database Microservice
+  my-db-backend:
+    image: "redis:7-alpine"
+    ports:
+      - "6379:6379"
