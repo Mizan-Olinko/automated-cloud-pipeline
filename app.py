@@ -3,7 +3,8 @@ from http.server import SimpleHTTPRequestHandler
 from socketserver import TCPServer
 from redis import Redis
 
-PORT = 9090
+# 1. Change the port to 8080 so Docker matches perfectly
+PORT = 8080
 
 # Connect to the Redis container using its service name from the docker-compose network
 cache = None
@@ -23,7 +24,7 @@ class PortfolioHandler(SimpleHTTPRequestHandler):
             try:
                 hits = cache.incr('hits')
             except Exception:
-                hits = "Database Connection Offline"
+                hits = "Database Connection Offline (Local Mode)"
 
         self.send_response(200)
         self.send_header("Content-type", "text/html")
@@ -98,7 +99,7 @@ class PortfolioHandler(SimpleHTTPRequestHandler):
                 <header>
                     <h1>Mizan-Olinko</h1>
                     <p style="color:var(--text-muted);margin:0;">Cloud Systems & DevOps Engineer</p>
-                    <div class="status-badge">🚀 Microservices Stack Active via Docker Compose</div>
+                    <div class="status-badge">🚀 Microservices Stack Active via CI/CD</div>
                 </header>
 
                 <div class="counter-box">
@@ -125,6 +126,7 @@ class PortfolioHandler(SimpleHTTPRequestHandler):
                             <span>Docker Compose</span>
                             <span>Redis DB</span>
                             <span>AWS Cloud</span>
+                            <span>GitHub Actions</span>
                         </div>
                     </div>
                 </div>
@@ -132,8 +134,10 @@ class PortfolioHandler(SimpleHTTPRequestHandler):
         </body>
         </html>
         """
-        self.wfile.write(b"<h1>Mizan-Olinko's CI/CD Pipeline is Fully Alive!</h1>")
+        # 2. Write the ACTUAL portfolio_html variable to the response stream
+        self.wfile.write(portfolio_html.encode('utf-8'))
 
 print(f"Serving portfolio microservice securely on port {PORT}...")
+# 3. Bind to "" (which represents 0.0.0.0) so Docker networks can reach it!
 with TCPServer(("", PORT), PortfolioHandler) as httpd:
     httpd.serve_forever()
