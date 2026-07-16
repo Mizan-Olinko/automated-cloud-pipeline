@@ -6,15 +6,16 @@ from redis import Redis
 # Bind to port 8080 for AWS Docker deployment mapping
 PORT = 8080
 
-# Connect to the Redis container using its service name from the docker-compose network
+# Connect to Redis (checks 'my-db-backend' on Docker network first, falls back to localhost)
 cache = None
-for i in range(10):
+for host in ['my-db-backend', 'localhost']:
     try:
-        cache = Redis(host='my-db-backend', port=6379, socket_connect_timeout=2)
+        cache = Redis(host=host, port=6379, socket_connect_timeout=2)
         cache.ping()
+        print(f"Successfully connected to Redis host: {host}")
         break
     except Exception:
-        time.sleep(1)
+        cache = None
 
 class PortfolioHandler(SimpleHTTPRequestHandler):
     def do_GET(self):
@@ -25,6 +26,8 @@ class PortfolioHandler(SimpleHTTPRequestHandler):
                 hits = cache.incr('hits')
             except Exception:
                 hits = "Database Connection Offline (Local Mode)"
+        else:
+            hits = "Database Connection Offline (Local Mode)"
 
         self.send_response(200)
         self.send_header("Content-type", "text/html")
@@ -198,7 +201,7 @@ class PortfolioHandler(SimpleHTTPRequestHandler):
                     <div class="subtitle">Cloud Systems & DevOps Engineer</div>
                     
                     <div class="contact-info">
-                        <span>📍 London, UK (SE3)</span>
+                        <span>📍 London, UK (SE26 6BA)</span>
                         <span>✉️ <a href="mailto:mizanm65@gmail.com">mizanm65@gmail.com</a></span>
                         <span>📞 <a href="tel:07485181198">07485181198</a></span>
                         <span>💻 <a href="https://github.com/Mizan-Olinko" target="_blank">github.com/Mizan-Olinko</a></span>
@@ -208,7 +211,7 @@ class PortfolioHandler(SimpleHTTPRequestHandler):
                 </header>
 
                 <div class="counter-box">
-                    📊 Live Visitor Metric (Redis Backend Connection State): <strong>{hits}</strong>
+                    📊 Live Visitor Metric (Redis Backend Counter): <strong>{hits}</strong>
                 </div>
 
                 <div class="section">
@@ -305,7 +308,6 @@ class PortfolioHandler(SimpleHTTPRequestHandler):
         </body>
         </html>
         """
-        # Write the clean, updated portfolio_html to the web output stream
         self.wfile.write(portfolio_html.encode('utf-8'))
 
 print(f"Serving recruiter-ready portfolio on port {PORT}...")

@@ -68,4 +68,4 @@ jobs:
           sudo docker pull mizanolinko/prod-app:latest
           
           # Run the fresh container version on host port 8080
-          sudo docker run -d -p 8080:8080 --name prod-cloud-app mizanolinko/prod-app:latest
+          sudo docker run -d --name prod-cloud-app -p 8080:8080 --network portfolio-network --restart always mizanolinko/prod-app:latest
